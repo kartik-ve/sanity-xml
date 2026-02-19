@@ -310,7 +310,7 @@ final class ReadyAPIReportGenerator {
         html.append("</head>\n\n");
         html.append("<body style=\"margin:0; padding:0; font-family: Arial, Helvetica, sans-serif;\">\n");
         html.append(
-                "    <table width=\"85%\" align=\"center\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin:auto;\">\n");
+                "    <table width=\"85%\" align=\"center\" cellpadding=\"40\" cellspacing=\"0\" style=\"margin:auto; border:2px solid #242424; border-collapse:collapse;\">\n");
         html.append("        <tr>\n");
         html.append("            <td>\n");
         html.append("                <hr style=\"border:0; border-top:1px solid #aaaaaa;\">\n");
