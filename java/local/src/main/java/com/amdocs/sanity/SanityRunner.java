@@ -50,24 +50,24 @@ public class SanityRunner {
         }
 
         if (args.length == argsForExtendedSanity) {
-            Path originalPath = Paths.get(args[6]);
+            Path originalPath = Paths.get(args[5]);
             String originalFileName = originalPath.getFileName().toString();
             Path excelPath = Paths.get(outputDir, "Exceptions.xlsx");
-            String[] flows = args[7].split("\\|");
+            String[] flows = args[6].split("\\|");
             
             int project = -1;
-            if (args[8].equalsIgnoreCase("OE")) {
+            if (args[7].equalsIgnoreCase("OE")) {
                 project = 1;
-            } else if (args[8].equalsIgnoreCase("CO")) {
+            } else if (args[7].equalsIgnoreCase("CO")) {
                 project = 2;
             } else {
                 System.err.println("Project must be OE or CO");
                 System.exit(1);
             }
 
-            String dmp = args[9];
-            String env = args[10];
-            String tester = args[11];
+            String dmp = args[8];
+            String env = args[9];
+            String tester = args[10];
 
             try {
                 for (String flow : flows) {
