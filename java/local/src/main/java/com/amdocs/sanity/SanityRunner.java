@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class SanityRunner {
+public final class SanityRunner {
 
     private SanityRunner() {
     }
