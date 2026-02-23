@@ -14,8 +14,8 @@ public final class SanityRunner {
     }
 
     public static void main(String[] args) {
-        int argsForBasicSanity = 5;
-        int argsForExtendedSanity = 11;
+        int argsForBasicSanity = 4;
+        int argsForExtendedSanity = 10;
         if (args.length != argsForBasicSanity && args.length != argsForExtendedSanity) {
             System.err.println(
                     "Usage: java SanityRunner <input_junit_report_dir> <input_tc_data_dir> <output_dir> <job_name>");
