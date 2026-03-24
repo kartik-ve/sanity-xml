@@ -20,6 +20,26 @@ final class LogsToExcel {
     private LogsToExcel() {
     }
 
+    private static enum Flow {
+        NC("NC"),
+        COS("COS"),
+        CR("CR"),
+        RP("RP"),
+        MT("MT"),
+        BT("BT"),
+        SU("SU");
+
+        private final String label;
+
+        Flow(String label) {
+            this.label = label;
+        }
+
+        String sheetName(boolean isOE) {
+            return label + (isOE ? " - OE" : " - CO");
+        }
+    }
+
     static void log(
             Path logFile,
             Path excelFilePath,
@@ -93,26 +113,6 @@ final class LogsToExcel {
         }
 
         return open;
-    }
-
-    private static enum Flow {
-        NC("NC"),
-        COS("COS"),
-        CR("CR"),
-        RP("RP"),
-        MT("MT"),
-        BT("BT"),
-        SU("SU");
-
-        private final String label;
-
-        Flow(String label) {
-            this.label = label;
-        }
-
-        String sheetName(boolean isOE) {
-            return label + (isOE ? " - OE" : " - CO");
-        }
     }
 
     private static void createExcel(
