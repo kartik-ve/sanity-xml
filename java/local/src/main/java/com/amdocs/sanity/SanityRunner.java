@@ -1,8 +1,10 @@
 package com.amdocs.sanity;
 
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.Stream;
 
 public final class SanityRunner {
 
@@ -35,8 +37,6 @@ public final class SanityRunner {
         int exitCode = 0;
 
         try {
-            Files.createDirectories(failedDir);
-
             ReadyAPIReportGenerator.ReportSummary summary = ReadyAPIReportGenerator.generateReport(
                     junitDir.toString(),
                     buildDir.toString(),
@@ -50,11 +50,21 @@ public final class SanityRunner {
             System.out.println("  Failed: " + summary.totalFailed);
             System.out.println("  Total Time: " + String.format("%.3f", summary.totalTime) + "s");
 
+            Files.createDirectories(failedDir);
             CopyFailedTestCaseData.copy(tcDataDir, failedDir);
+
             System.out.println("Copied Failed Test Cases' Data!");
         } catch (Exception e) {
             exitCode = 1;
             e.printStackTrace();
+        } finally {
+            try {
+                if (Files.exists(failedDir) && isDirectoryEmpty(failedDir)) {
+                    Files.delete(failedDir);
+                }
+            } catch (IOException cleanupEx) {
+                System.err.println("Failed to clean up failedDir: " + cleanupEx.getMessage());
+            }
         }
 
         if ("EXTENDED".equalsIgnoreCase(params.get("type"))) {
@@ -101,5 +111,11 @@ public final class SanityRunner {
             map.put(args[i].replace("--", ""), args[i + 1]);
         }
         return map;
+    }
+
+    private static boolean isDirectoryEmpty(Path dir) throws IOException {
+        try (Stream<Path> stream = Files.list(dir)) {
+            return !stream.findFirst().isPresent();
+        }
     }
 }
