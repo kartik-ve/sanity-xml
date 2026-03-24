@@ -74,24 +74,26 @@ public final class SanityRunner {
 
             Path excelPath = buildDir.resolve(config.getProperty("dir.exceptions"));
 
-            try {
-                for (String flow : flows) {
-                    Path logFile = errorDir.resolve(flow.toUpperCase() + ".err");
+            for (String flow : flows) {
+                Path logFile = errorDir.resolve(flow.toUpperCase() + ".err");
 
-                    if (!Files.exists(logFile)) {
-                        continue;
-                    }
+                if (!Files.exists(logFile)) {
+                    continue;
+                }
 
+                try {
                     LogsToExcel.log(logFile, excelPath, flow, project,
                             params.get("dmp"),
                             params.get("env"),
                             params.get("tester"));
+                } catch (IllegalArgumentException e) {
+                    System.err.println("Invalid argument provided for flow: " + flow);
+                } catch (IOException e) {
+                    exitCode = 1;
+                    e.printStackTrace();
                 }
-                System.out.println("Logs processed and saved to Excel!");
-            } catch (Exception e) {
-                exitCode = 1;
-                e.printStackTrace();
             }
+            System.out.println("Logs processed and saved to Excel!");
         }
 
         try {
