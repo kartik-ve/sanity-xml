@@ -21,14 +21,14 @@ final class LogsToExcel {
     }
 
     private static enum Flow {
-        NC("NC"),
-        COS("COS"),
-        CR("CR"),
-        RP("RP"),
-        MT("MT"),
-        BT("BT"),
-        SU("SU"),
-        COAM("COAM");
+        NEW_CONNECT("NC"),
+        CHANGE_OF_SERVICE("COS"),
+        CEASE_RESTART("CR"),
+        REPLACE_OFFER("RP"),
+        MOVE_TRANSFER("MT"),
+        BULK_TENANT("BT"),
+        SEASONAL_SUSPEND("SU"),
+        CO_AM("COAM");
 
         private final String label;
 
@@ -54,7 +54,7 @@ final class LogsToExcel {
 
         Flow f;
         try {
-            f = Flow.valueOf(flow.toUpperCase());
+            f = Flow.valueOf(normalize(flow.toUpperCase()));
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid flow: " + flow, e);
         }
@@ -63,6 +63,13 @@ final class LogsToExcel {
             exceptions = findErrors(br);
             createExcel(exceptions, excelFilePath, f, project, dmp, env, tester);
         }
+    }
+
+    public static String normalize(String input) {
+        return input
+                .replaceAll("[^a-zA-Z0-9]", "_") // replace spaces & special chars
+                .replaceAll("_+", "_") // collapse multiple underscores
+                .replaceAll("^_|_$", ""); // trim leading/trailing underscore
     }
 
     private static List<String> findErrors(BufferedReader br) throws IOException {
