@@ -119,11 +119,8 @@ final class ReadyAPIReportGenerator {
                         status = "FAILED";
                         testSuite.status = "FAILED";
 
-                        String failureText = failures.item(0).getTextContent();
-
-                        int begIdx = failureText.indexOf("<b>") + 3;
-                        int endIdx = failureText.indexOf("Failed", begIdx);
-                        failedStep = failureText.substring(begIdx, endIdx).trim();
+                        String failureType = failures.item(0).getAttributes().getNamedItem("type").getNodeValue();
+                        failedStep = failureType.split(":")[1].trim();
 
                         // Rename failed step's api_response file
                         if (apiResponsesDir != null && !apiResponsesDir.isEmpty()) {
