@@ -81,33 +81,138 @@ def envConfig = [
 def activeEnv = project.activeEnvironment
 def env = System.getProperty("env")
 
-if (!env) {
-    log.error "ENV not provided!"
-    return
+if (env) {
+    env = env.trim().toUpperCase()
+
+    def config = envConfig[env]
+
+    if (config) {
+        def endpoint = config.endpoint
+        def jdbcUrl = config.jdbc
+        def username = "omswrk1"
+        def hostname = config.hostname
+
+        project.setPropertyValue("ENV", env)
+        project.setPropertyValue("MecEndpoint", endpoint)
+        project.setPropertyValue("MecDBConnection", jdbcUrl)
+        project.setPropertyValue("USER", username)
+        project.setPropertyValue("HOST", hostname)
+
+        log.info "ENV: ${env}"
+        log.info "Endpoint: ${endpoint}"
+        log.info "JDBC URL: ${jdbcUrl}"
+        log.info "User: ${username}"
+        log.info "Host: ${hostname}"
+    }
 }
 
-env = env.trim().toUpperCase()
 
-def config = envConfig[env]
+// Custom Test Runner (Retry + API Logging)
 
-if (!config) {
-    log.error "Invalid ENV: ${env}"
-    return
+def isReadyAPI = Package.getPackages().any { 
+    it.name.startsWith("com.smartbear.ready")
 }
 
-def endpoint = config.endpoint
-def jdbcUrl = config.jdbc
-def username = "omswrk1"
-def hostname = config.hostname
+def runWithRetry = { testRunner, context ->
 
-project.setPropertyValue("ENV", env)
-project.setPropertyValue("MecEndpoint", endpoint)
-project.setPropertyValue("MecDBConnection", jdbcUrl)
-project.setPropertyValue("USER", username)
-project.setPropertyValue("HOST", hostname)
+    def maxAttempts = 3
+    def retryDelay = 1000
+    def timeoutString = "timed out"
 
-log.info "ENV: ${env}"
-log.info "Endpoint: ${endpoint}"
-log.info "JDBC URL: ${jdbcUrl}"
-log.info "User: ${username}"
-log.info "Host: ${hostname}"
+    def passedString = isReadyAPI ? "PASS" : "OK"
+
+    def testCase = context.testCase
+    def testSuite = testCase.testSuite
+    def testSteps = testCase.getTestStepList()
+
+    def workspace = System.getenv("WORKSPACE")
+    def buildNumber = System.getenv("BUILD_NUMBER")
+
+    def rootOutputDir
+
+    if (workspace && buildNumber) {
+        rootOutputDir = new File("${workspace}/${buildNumber}/tc_data")
+    } else {
+        def basePath = new File(project.path).parentFile.path
+        rootOutputDir = new File("${basePath}/tc_data")
+    }
+
+    for (step in testSteps) {
+
+        if (step == context.currentStep) {
+            continue
+        }
+
+        def testStepName = step.getName()
+
+        if (step.isDisabled()) {
+            log.info "Skipping disabled step: ${testStepName}"
+            continue
+        }
+
+        def stepType = step.getClass().getSimpleName()
+        def isApiStep = stepType in ["RestTestRequestStep", "HttpTestRequestStep"]
+
+        boolean success = false
+
+        def result = step.run(testRunner, context)
+
+        if (result.status.toString() == passedString) {
+            success = true
+        } else if (isApiStep) {
+            def responseContent = result.responseContent ?: ""
+            def isTimeout = responseContent.containsIgnoreCase(timeoutString)
+
+            int attempt = 2
+
+            while (isTimeout && attempt <= maxAttempts) {
+
+                log.warn "Timeout on step: ${testStepName}, Attempt: ${attempt}"
+
+                sleep(retryDelay)
+
+                result = step.run(testRunner, context)
+                responseContent = result.responseContent ?: ""
+                isTimeout = responseContent.containsIgnoreCase(timeoutString)
+
+                if (result.status.toString() == passedString) {
+                    success = true
+                    break
+                }
+
+                attempt++
+            }
+        }
+
+        if (isApiStep) {
+            def requestContent = step.testRequest?.requestContent
+            def responseContent = result.responseContent ?: ""
+
+            def safeTestSuiteName = testSuite.name.replaceAll(/[\\\/:*?"<>|]/, "_")
+            def safeTestCaseName = testCase.name.replaceAll(/[\\\/:*?"<>|]/, "_")
+            def safeTestStepName = testStepName.replaceAll("[^a-zA-Z0-9._-]", "_")
+
+            def requestDir = new File(rootOutputDir, "${safeTestSuiteName}/${safeTestCaseName}/requests")
+            def responseDir = new File(rootOutputDir, "${safeTestSuiteName}/${safeTestCaseName}/responses")
+
+            requestDir.mkdirs()
+            responseDir.mkdirs()
+
+            if (requestContent?.trim()) {
+                new File(requestDir, "${safeTestStepName}.json").write(requestContent, "UTF-8")
+            }
+
+            if (responseContent?.trim()) {
+                new File(responseDir, "${safeTestStepName}.json").write(responseContent, "UTF-8")
+            }
+        }
+
+        if (!success) {
+            testRunner.fail("Test failed at step: ${testStepName}")
+            return
+        }
+    }
+}
+
+project.metaClass.sharedScripts = [:]
+project.sharedScripts.runWithRetry = runWithRetry
