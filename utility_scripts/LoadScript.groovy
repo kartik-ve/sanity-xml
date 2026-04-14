@@ -161,7 +161,7 @@ def runWithRetry = { testRunner, context ->
             success = true
         } else if (isApiStep) {
             def responseContent = result.responseContent ?: ""
-            def isTimeout = responseContent.containsIgnoreCase(timeoutString)
+            def isTimeout = responseContent.toLowerCase().contains(timeoutString)
 
             int attempt = 2
 
@@ -173,7 +173,7 @@ def runWithRetry = { testRunner, context ->
 
                 result = step.run(testRunner, context)
                 responseContent = result.responseContent ?: ""
-                isTimeout = responseContent.containsIgnoreCase(timeoutString)
+                isTimeout = responseContent.toLowerCase().contains(timeoutString)
 
                 if (result.status.toString() == passedString) {
                     success = true
