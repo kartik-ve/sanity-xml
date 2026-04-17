@@ -182,9 +182,7 @@ def runWithRetry = { testRunner, context ->
 
                 attempt++
             }
-        }
-
-        if (isApiStep) {
+            
             def requestContent = step.testRequest?.requestContent
             def responseContent = result.responseContent ?: ""
 
