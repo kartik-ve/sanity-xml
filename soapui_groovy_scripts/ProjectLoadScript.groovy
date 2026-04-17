@@ -173,13 +173,13 @@ def runWithRetry = { testRunner, context ->
 
                 result = step.run(testRunner, context)
                 responseContent = result.responseContent ?: ""
-                isTimeout = responseContent.toLowerCase().contains(timeoutString)
 
                 if (result.status.toString() == passedString) {
                     success = true
                     break
                 }
 
+                isTimeout = responseContent.toLowerCase().contains(timeoutString)
                 attempt++
             }
             
