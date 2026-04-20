@@ -238,7 +238,13 @@ def runWithRetry = { testRunner, context ->
             def responseContent = result.responseContent ?: ""
 
             if (restartIndex == -1) {
-                restartIndex = (requestContent?.trim() =~ /^\{\s*"ImplCreateOrderRequest"/).find() ? i : restartIndex
+                restartIndex = (requestContent?.trim() =~ /^\{\s*"ImplCreateOrderRequest"/).find()
+                                ? i
+                                : (
+                                    (requestContent?.trim() =~ /^\{\s*"ImplCreateAssignedProductsRequest"/).find()
+                                    ? i
+                                    : restartIndex
+                                )
             }
 
             def safeTestSuiteName = testSuite.name.replaceAll(/[\\\/:*?"<>|]/, "_")
