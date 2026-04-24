@@ -1,4 +1,4 @@
-// Environment Configuration & Initialization
+// Environment Configuration &amp; Initialization
 
 def envConfig = [
     "8285": [
@@ -92,7 +92,7 @@ def project = context.testSuite.project
 def activeEnv = project.activeEnvironment
 def env = ""
 
-if (activeEnv && activeEnv.name != "Default environment" && activeEnv.name != "Default") {
+if (activeEnv &amp;&amp; activeEnv.name != "Default environment" &amp;&amp; activeEnv.name != "Default") {
     log.info "ENV found: ${activeEnv.name}. Continuing..."
 
     def service = activeEnv.getRestServiceAt(0) ?: activeEnv.getSoapServiceAt(0)
