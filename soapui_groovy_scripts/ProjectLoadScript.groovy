@@ -191,7 +191,6 @@ def runWithRetry = { testRunner, context ->
                 sleep(retryDelay)
 
                 result = step.run(testRunner, context)
-                attempt++
                 
                 responseContent = result.responseContent ?: ""
 
@@ -203,6 +202,7 @@ def runWithRetry = { testRunner, context ->
                 isTimeout = responseContent.toLowerCase().contains(timeoutString)
 
                 if (isTimeout) {
+                    attempt++
                     continue
                 }
 
@@ -236,6 +236,10 @@ def runWithRetry = { testRunner, context ->
                     }
                 }
             }
+        }
+
+        if (globalRetrying) {
+            continue
         }
 
         if (isApiStep) {
