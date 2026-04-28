@@ -186,13 +186,13 @@ def runWithRetry = { testRunner, context ->
             boolean globalRetrying = false
 
             while (isTimeout && attempt <= maxAttempts) {
-                attempt++
-
                 log.warn "Timeout on step: ${testStepName}, Attempt: ${attempt}"
 
                 sleep(retryDelay)
 
                 result = step.run(testRunner, context)
+                attempt++
+                
                 responseContent = result.responseContent ?: ""
 
                 if (result.status.toString() == passedString) {
