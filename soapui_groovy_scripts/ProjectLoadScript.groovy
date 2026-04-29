@@ -121,7 +121,7 @@ def isReadyAPI = Package.getPackages().any {
 
 def runWithRetry = { testRunner, context ->
 
-    def MAX_PATH_LENGTH = 260
+    def MAX_PATH_LENGTH = 259
     
     def testCase  = context.testCase
     def testSuite = testCase.testSuite
