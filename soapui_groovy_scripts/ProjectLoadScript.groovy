@@ -121,15 +121,10 @@ def isReadyAPI = Package.getPackages().any {
 
 def runWithRetry = { testRunner, context ->
 
-    def maxAttempts = 3
-    def retryDelay = 1000
-    def timeoutString = "timed out"
-
-    def passedString = isReadyAPI ? "PASS" : "OK"
-
+    def MAX_PATH_LENGTH = 260
+    
     def testCase = context.testCase
     def testSuite = testCase.testSuite
-    def testSteps = testCase.getTestStepList()
 
     def workspace = System.getenv("WORKSPACE")
     def buildNumber = System.getenv("BUILD_NUMBER")
@@ -142,6 +137,32 @@ def runWithRetry = { testRunner, context ->
         def basePath = new File(project.path).parentFile.path
         rootOutputDir = new File("${basePath}/tc_data")
     }
+
+    def safeTestSuiteName = testSuite.name.replaceAll(/[\\\/:*?"<>|]/, "_")
+    def safeTestCaseName = testCase.name.replaceAll(/[\\\/:*?"<>|]/, "_")
+
+    def testSuiteDir = new File(rootOutputDir, safeTestSuiteName)
+    def absPathLength = testSuiteDir.getAbsolutePath().length()
+
+    def maxTestStepNameLength = 62 // Length of the longest test step name "RCI (Specific Offers)"
+    def numberOfPathSeparators = 3 // testSuiteDir + testCaseDir + request/responseDir + file
+    def maxTestCaseNameLength = MAX_PATH_LENGTH - absPathLength - Math.max("responses".length(), "requests".length()) - maxTestStepNameLength - ".json".length() - numberOfPathSeparators
+
+    safeTestCaseName = safeTestCaseName.substring(0, Math.min(safeTestCaseName.length(), maxTestCaseNameLength))
+
+    def requestDir  = new File(testSuiteDir, "${safeTestCaseName}/requests")
+    def responseDir = new File(testSuiteDir, "${safeTestCaseName}/responses")
+
+    requestDir.mkdirs()
+    responseDir.mkdirs()
+
+    def maxAttempts = 3
+    def retryDelay = 1000
+    def timeoutString = "timed out"
+
+    def passedString = isReadyAPI ? "PASS" : "OK"
+
+    def testSteps = testCase.getTestStepList()
 
     int i = 0
     int restartIndex = -1
@@ -257,15 +278,8 @@ def runWithRetry = { testRunner, context ->
                                 )
             }
 
-            def safeTestSuiteName = testSuite.name.replaceAll(/[\\\/:*?"<>|]/, "_")
-            def safeTestCaseName = testCase.name.replaceAll(/[\\\/:*?"<>|]/, "_")
             def safeTestStepName = testStepName.replaceAll("[^a-zA-Z0-9._-]", "_")
-
-            def requestDir = new File(rootOutputDir, "${safeTestSuiteName}/${safeTestCaseName}/requests")
-            def responseDir = new File(rootOutputDir, "${safeTestSuiteName}/${safeTestCaseName}/responses")
-
-            requestDir.mkdirs()
-            responseDir.mkdirs()
+            safeTestStepName = safeTestStepName.substring(0, Math.min(safeTestStepName.length(), maxTestStepNameLength))
 
             if (requestContent?.trim()) {
                 new File(requestDir, "${safeTestStepName}.json").write(requestContent, "UTF-8")
