@@ -175,6 +175,8 @@ def runWithRetry = { testRunner, context ->
 
         def result = step.run(testRunner, context)
 
+        boolean globalRetrying = false
+
         if (result.status.toString() == passedString) {
             success = true
         } else if (isApiStep) {
@@ -183,7 +185,6 @@ def runWithRetry = { testRunner, context ->
             def isTimeout = responseContent.toLowerCase().contains(timeoutString)
 
             int attempt = 2
-            boolean globalRetrying = false
 
             while (isTimeout && attempt <= maxAttempts) {
                 log.warn "Timeout on step: ${testStepName}, Attempt: ${attempt}"
