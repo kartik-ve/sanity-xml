@@ -66,6 +66,11 @@ def envConfig = [
         endpoint: "http://illnqw8733:11111",
         jdbc: "jdbc:oracle:thin:OMS1OMS/OMS1OMS@illnqw8692:1521:CHCDB8733"
     ],
+    "8735": [
+        hostname: "illnqw8735",
+        endpoint: "http://illnqw8735:11111",
+        jdbc: "jdbc:oracle:thin:OMS1OMS/OMS1OMS@illnqw8745:1521:CHCDB8735"
+    ],
     "SIT1": [
         hostname: "mwhlvchca01",
         endpoint: "https://sit1-oe-npe.amdocs.spectrum.com",
